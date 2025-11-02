@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Threading.Tasks; // Para usar async/await con Task
 using UnityEngine.SceneManagement; // Para la carga de escenas
+using TMPro; // Para usar TextMeshProUGUI
+using UnityEngine.UI;
 
 /// <summary>
 /// Gestiona los estados de la UI y las transiciones entre ellos
@@ -16,6 +19,14 @@ public class UIManager : MonoBehaviour
     public GameObject mainMenuPanel;
     public GameObject pauseMenuPanel;
     public GameObject inGameHudPanel;
+    public GameObject victoryPanel; // Panel para mostrar en caso de victoria
+
+    [Header("Loading Screen")]
+    public GameObject loadingScreenPanel;
+    public Slider loadingBar;
+
+    [Header("HUD")]
+    public TextMeshProUGUI infoText;
 
     // Estados de la UI
     private UIState _currentState;
@@ -38,6 +49,28 @@ public class UIManager : MonoBehaviour
         MainMenuState = new MainMenuState(this);
         InGameState = new InGameState(this);
         PauseMenuState = new PauseMenuState(this);
+    }
+
+    private void OnEnable()
+    {
+        GameEvents.OnITargetFocused += HandleTargetFocused;
+        GameEvents.OnITargetLost += HandleTargetLost;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnITargetFocused -= HandleTargetFocused;
+        GameEvents.OnITargetLost -= HandleTargetLost;
+    }
+
+    private void HandleTargetLost(GameObject @object)
+    {
+        infoText.gameObject.SetActive(false);
+    }
+
+    private void HandleTargetFocused(GameObject @object)
+    {
+        infoText.gameObject.SetActive(true);
     }
 
     private void Start()
@@ -74,9 +107,41 @@ public class UIManager : MonoBehaviour
     }
 
     // Métodos para los botones de la UI
-    public void OnPlayButtonClicked()
+    public async void OnPlayButtonClicked()
     {
-        ChangeState(InGameState);
+        // mostrar la pantalla de carga
+    loadingScreenPanel.SetActive(true);
+    mainMenuPanel.SetActive(false); // ocultar el menú principal
+
+    // inicia la carga de la escena de forma asíncrona
+    AsyncOperation sceneLoadOperation = SceneManager.LoadSceneAsync("Level_001");
+
+    // evitar que la escena se active automáticamente al llegar al 90%
+    sceneLoadOperation.allowSceneActivation = false;
+
+    // mientras la escena se carga...
+    while (!sceneLoadOperation.isDone)
+    {
+        // el progreso de LoadSceneAsync se detiene en 0.9 hasta que se permite la activación
+        // mapeamos al 90% para la barra de progreso
+        float progress = Mathf.Clamp01(sceneLoadOperation.progress / 0.9f);
+        loadingBar.value = progress;
+
+        // si la carga ha alcanzado el 90%...
+        if (sceneLoadOperation.progress >= 0.9f)
+        {
+            // podemos mostrar un aviso y esperar una tecla del usuario (opcional)
+            // aqui solo activamos la escena cargada
+            sceneLoadOperation.allowSceneActivation = true;
+        }
+
+        // es el equivalente de 'yield return null' en una corrutina
+        await Task.Yield();
+    }
+
+    // una vez que la escena está cargada y activa, cambiamos el estado
+    ChangeState(InGameState);
+    loadingScreenPanel.SetActive(false);
     }
 
     public void OnResumeButtonClicked()
@@ -89,4 +154,11 @@ public class UIManager : MonoBehaviour
         Debug.Log("Saliendo del juego...");
         Application.Quit();
     }
+
+    public void ShowVictoryPanel()
+    {
+        inGameHudPanel.SetActive(false);
+        victoryPanel.SetActive(true);
+    }
+
 }
