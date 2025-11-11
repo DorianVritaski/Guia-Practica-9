@@ -7,6 +7,9 @@ public class FirstPersonController : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float _movementSpeed = 5.0f;
 
+    [Header("Interaction Settings")]
+    [SerializeField] private float _rifleRange = 50f;
+
     [Header("Look Settings")]
     [SerializeField] private float _mouseSensitivity = 2.0f;
     [SerializeField] private float _verticalLookLimit = 80.0f;
@@ -57,6 +60,22 @@ public class FirstPersonController : MonoBehaviour
     {
         HandleMovement();
         HandleLook();
+        HandleRifleShot();
+    }
+
+    private void HandleRifleShot()
+    {
+        if (Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            if (Physics.Raycast(_cameraTransform.position, _cameraTransform.forward, out RaycastHit hit, _rifleRange))
+            {
+                if (hit.collider.TryGetComponent(out IInteractable interactable))
+                {
+                    Debug.Log("Rifle ha golpeado a un objeto interactuable.");
+                    interactable.Interact();
+                }
+            }
+        }
     }
 
     private void OnMoveInput(InputAction.CallbackContext context)
