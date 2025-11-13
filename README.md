@@ -2,8 +2,8 @@ Nombre del Estudio
 Estudio de Desarrollo "Neurobyte"
 
 Miembros y Roles
-- Tapia De La Cruz Jhann Pier 1 – Arquitecto de IA
-- Calderon Huamán Jerico Owen 2 – Diseñador/a de Comportamiento
+- Tapia De La Cruz Jhann Pier  – Arquitecto de IA
+- Calderon Huamán Jerico Owen  – Diseñador/a de Comportamiento
 
 Descripción del Hito
 En esta práctica 12 implementamos un sistema de inteligencia artificial basado en el Patrón de Diseño State, integrando tres estados principales: patrulla, persecución y aturdimiento (StunState). 
