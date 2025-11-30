@@ -8,7 +8,7 @@ public class PlayerInteractor : MonoBehaviour
     private Camera _mainCamera;
     private PlayerInputActions _inputActions;
 
-    private GameObject _currentFocus; // Variable para guardar el objeto enfocado
+    private GameObject _current;
 
     private void Awake()
     {
@@ -57,31 +57,22 @@ public class PlayerInteractor : MonoBehaviour
         Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, _interactionDistance))
         {
-            GameObject hitObject = hit.collider.gameObject;
-            if (hitObject.GetComponent<IInteractable>() != null)
+            if (hit.collider.GetComponent<IInteractable>() != null)
             {
-                SetFocus(hitObject);
-                return;
+                Debug.Log("Objeto interactuable a la vista: " + hit.collider.name);
+
+                // Aquí la lógica para mostrar "[E] Interactuar" en la UI.
             }
         }
-        // Si el raycast no golpea nada interactuable, limpiamos el foco.
-        ClearFocus();
     }
 
     private void SetFocus(GameObject target)
     {
-        if (_currentFocus == target) return;
-        ClearFocus(); // Limpia el foco anterior si existe
-        _currentFocus = target;
-        // _currentFocus.GetComponent<OutlineComponent>()?.Apply(); // Descomentar si tienes un componente de Outline
-        GameEvents.TriggerITargetFocused(_currentFocus);
+        GameEvents.TriggerTargetFocused(_current);
     }
 
     private void ClearFocus()
     {
-        if (_currentFocus == null) return;
-        // _currentFocus.GetComponent<OutlineComponent>()?.Remove(); // Descomentar si tienes un componente de Outline
-        GameEvents.TriggerITargetLost(_currentFocus);
-        _currentFocus = null;
+        GameEvents.TriggerTargetLost(_current);
     }
 }
